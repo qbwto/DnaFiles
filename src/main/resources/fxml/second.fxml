@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane  fx:id="borderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.controller.SecondController">
+   <top>
+      <ToolBar prefHeight="31.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+        <items>
+          <Button mnemonicParsing="false" text="开始" onAction="#startCompareAction"  />
+          <Button mnemonicParsing="false" onAction="#showBDResult" text="显示比对结果" />
+        </items>
+      </ToolBar>
+   </top>
+
+   <center>
+      <Pane fx:id="cPane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+   </center>
+</BorderPane>
