@@ -69,7 +69,6 @@ public class Main extends Application {
     @FXML
     protected void gotoRecheck(ActionEvent event)throws Exception {
 
-
         Stage stage=new Stage();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/recheck.fxml"));
         Parent root = (Parent)loader.load();
