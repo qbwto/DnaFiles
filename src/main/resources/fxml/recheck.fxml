@@ -1,93 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.effect.*?>
-<?import java.lang.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.text.Text?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.controller.RecheckController">
+<?import javafx.scene.control.Separator?>
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.controller.RecheckController">
     <top>
-        <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+        <ToolBar prefHeight="48.0" prefWidth="600.0" BorderPane.alignment="CENTER">
             <items>
-                <Button mnemonicParsing="false" onAction="#startBDAction" text="提取比对文件" />
+
+               <Label text="路径A（CODIS）:"  />
+               <TextField fx:id="dir1" disable="true" prefHeight="30.0" prefWidth="97.0" />
+               <Button fx:id="dirButton1" mnemonicParsing="false" onAction="#setDirAction" text="..." />
+               <Separator prefWidth="20.0" />
+               <Label text="路径B（分析表）:"  />
+               <TextField fx:id="dir2" disable="true" prefHeight="30.0" prefWidth="98.0" />
+               <Button fx:id="dirButton2" mnemonicParsing="false" onAction="#setDirAction" text="..." />
+               <Separator prefWidth="20.0" />
+               <Button mnemonicParsing="false" onAction="#startBDAction" text="开始复检" />
+               <Button mnemonicParsing="false" onAction="#exportExcelAction" text="导出数据" />
+            </items>
+            <items>
 
             </items>
         </ToolBar>
     </top>
-
-   <left>
-       <GridPane fx:id="gridPane_1" alignment="CENTER" prefHeight="315.0" prefWidth="400.0" BorderPane.alignment="CENTER">
-           <children>
-               <Text fill="#c6c6c6" style="-fx-font-size: 20;" text="配置路径" wrappingWidth="90.0" GridPane.columnSpan="2" />
-
-               <Label text="路径A:" textFill="#a19f9f" GridPane.rowIndex="1" />
-               <TextField fx:id="dir1" disable="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-               <Button fx:id="dirButton1" mnemonicParsing="false" onAction="#setDirAction" text="..." GridPane.columnIndex="2" GridPane.rowIndex="1">
-               <GridPane.margin>
-                  <Insets left="10.0" />
-               </GridPane.margin></Button>
-
-               <Label text="路径B:" textFill="#a19f9f" GridPane.rowIndex="2" />
-               <TextField fx:id="dir2" disable="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-               <Button fx:id="dirButton2" mnemonicParsing="false" onAction="#setDirAction" text="..." GridPane.columnIndex="2" GridPane.rowIndex="2">
-               <GridPane.margin>
-                  <Insets left="10.0" />
-               </GridPane.margin></Button>
-
-               <Text strokeType="OUTSIDE" strokeWidth="0.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-               <Label text="结果路径:" textFill="#a19f9f" GridPane.rowIndex="3" />
-               <TextField disable="true" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-               <Button mnemonicParsing="false" text="..." GridPane.columnIndex="2" GridPane.rowIndex="3">
-               <GridPane.margin>
-                  <Insets left="10.0" />
-               </GridPane.margin></Button>
-
-           </children>
-
-           <columnConstraints>
-               <ColumnConstraints maxWidth="88.0" minWidth="50.0" prefWidth="84.0" />
-               <ColumnConstraints maxWidth="210.0" minWidth="159.0" prefWidth="206.0" />
-               <ColumnConstraints maxWidth="95.0" minWidth="10.0" prefWidth="57.0" />
-           </columnConstraints>
-
-           <rowConstraints>
-               <RowConstraints maxHeight="50.0" minHeight="25.0" prefHeight="60.0" />
-               <RowConstraints maxHeight="40.0" minHeight="0.0" prefHeight="40.0" />
-               <RowConstraints maxHeight="60.0" minHeight="21.0" prefHeight="40.0" />
-               <RowConstraints maxHeight="40.0" minHeight="0.0" prefHeight="40.0" />
-               <RowConstraints minHeight="10.0" prefHeight="30.0" />
-               <RowConstraints minHeight="10.0" prefHeight="30.0" />
-           </rowConstraints>
-
-       </GridPane>
-   </left>
-    <right>
-        <HBox style="-fx-border-width: 0;" BorderPane.alignment="CENTER">
-            <children>
-                <ScrollPane fx:id="scrollPane_1" fitToHeight="true" opacity="0.5" />
-                <ScrollPane fx:id="scrollPane_2" fitToHeight="true" opacity="0.5" />
-            </children>
-        </HBox>
-    </right>
+    
+    <center>
+        <Pane fx:id="cPane" prefHeight="312.0" prefWidth="382.0" BorderPane.alignment="CENTER">
+         <BorderPane.margin>
+            <Insets />
+         </BorderPane.margin></Pane>
+    </center>
    <bottom>
-      <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+      <ToolBar prefHeight="11.0" prefWidth="625.0" BorderPane.alignment="CENTER">
          <items>
-            <Label text="路径A文件数量：" />
-            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="0" />
-            <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="20.0" />
-            <Label text="路径B文件数量：" />
-            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="0" />
-            <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="20.0" />
-                <Button mnemonicParsing="false" onAction="#FlashFileListAction" opacity="0.62" text="刷新" />
+            <Button mnemonicParsing="false" onAction="#FlashFileListAction" opacity="0.62" text="刷新" />
          </items>
       </ToolBar>
    </bottom>
+   <left>
+       <VBox style="-fx-border-width: 0;" BorderPane.alignment="CENTER">
+           <children>
+               <ScrollPane fx:id="scrollPane_1" fitToHeight="true" opacity="0.5" style="-fx-border-width: 0;" />
+               <ScrollPane fx:id="scrollPane_2" fitToHeight="true" opacity="0.5" style="-fx-border-width: 0;" VBox.vgrow="ALWAYS" />
+           </children>
+       </VBox>
+   </left>
 </BorderPane>

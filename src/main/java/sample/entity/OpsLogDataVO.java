@@ -9,7 +9,6 @@ public class OpsLogDataVO {
 
     private String fileName_a; //文件A文件名
     private String fileName_b; //文件B文件名
-    private String state; //当前状态 未开始，进行中，已完成
     private int hitQuantity; //比对命中数量
     private int missQuantity; //未比对命中数量
     private int file_a_quantity;//文件A提取数据量
@@ -20,7 +19,6 @@ public class OpsLogDataVO {
     //文件B 提取编号数组
 
     public OpsLogDataVO() {
-        this.state = "未开始";
         this.hitQuantity = 0;
         this.missQuantity = 0;
         file_a_quantity = 0;
@@ -41,14 +39,6 @@ public class OpsLogDataVO {
 
     public void setFileName_b(String fileName_b) {
         this.fileName_b = fileName_b;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
     }
 
     public int getHitQuantity() {

@@ -1,5 +1,6 @@
 package sample.utils;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import sample.entity.ExcelDataVO;
@@ -30,7 +31,7 @@ public class ExcelWriter {
      */
     public static Workbook exportData(List<ExcelDataVO> dataList){
         // 生成xlsx的Excel
-        Workbook workbook = new SXSSFWorkbook();
+        Workbook workbook = new HSSFWorkbook();
 
         // 如需生成xls的Excel，请使用下面的工作簿对象，注意后续输出时文件后缀名也需更改为xls
         //Workbook workbook = new HSSFWorkbook();

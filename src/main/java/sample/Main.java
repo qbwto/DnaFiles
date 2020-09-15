@@ -74,7 +74,9 @@ public class Main extends Application {
         Parent root = (Parent)loader.load();
         stage.setScene(new Scene(root, 1000, 600));
         stage.setTitle("实验室小工具 | 复检");
+        stage.setMaximized(true);//全屏
         stage.show();
+
     }
 
 

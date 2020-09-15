@@ -43,7 +43,7 @@
                   <Insets top="20.0" />
                </VBox.margin>
             </Button>
-            <Button mnemonicParsing="false" onAction="#gotoRecheck" prefHeight="30.0" prefWidth="131.0" text="复检" disable="true">
+            <Button mnemonicParsing="false" onAction="#gotoRecheck" prefHeight="30.0" prefWidth="131.0" text="复检" >
                <VBox.margin>
                   <Insets top="10.0" />
                </VBox.margin>

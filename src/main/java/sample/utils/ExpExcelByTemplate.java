@@ -4,10 +4,12 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import sample.entity.ExcelDataVO;
 import sample.entity.Plate;
 import sample.entity.Well;
 
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * 根据模板导出Excel
@@ -77,6 +79,32 @@ public class ExpExcelByTemplate {
         }
 
 
+    }
+    /**
+     * 将比对的数据放入“复检模板.xls”
+     * @throws Exception
+     */
+
+    public void impDataToWorkBook(List<ExcelDataVO> lists) throws Exception{
+
+        Sheet sheet = workbook.getSheetAt(0);
+
+        for (int i = 0; i < lists.size(); i++) {
+
+            ExcelDataVO excelDataVO = lists.get(i);
+            String Name_a = excelDataVO.getName_a();
+            String Name_b = excelDataVO.getName_b();
+
+            if (i < 45) {
+                Row row = sheet.getRow(i + 5);
+                row.getCell(1).setCellValue(Name_b);
+                row.getCell(2).setCellValue(Name_a);
+            } else {
+                Row row = sheet.getRow((i - 48) + 5);
+                row.getCell(5).setCellValue(Name_b);
+                row.getCell(6).setCellValue(Name_a);
+            }
+        }
     }
 
     public static void main(String[] args)throws Exception {
