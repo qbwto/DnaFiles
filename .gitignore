@@ -4,6 +4,7 @@
 
 ###Maven template
 target/
+log/
 
 # IntelliJ project files
 .idea/

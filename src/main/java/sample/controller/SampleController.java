@@ -4,7 +4,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.control.*;
@@ -18,6 +17,7 @@ import javafx.scene.shape.Circle;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import org.apache.log4j.Logger;
 import org.apache.poi.ss.usermodel.Workbook;
 import sample.entity.Plate;
 import sample.entity.Well;
@@ -110,6 +110,8 @@ public class SampleController {
     /** 数据 */
     Plate plate;//“板”数据
     EventHandler<KeyEvent> ScanInputEnterListener;
+
+    private static Logger logger= Logger.getLogger(SampleController.class);
 
 
     /** 初始化"打板"数据 */
@@ -511,6 +513,8 @@ public class SampleController {
 
         /* 初始化数据 */
         plate = new Plate();
+
+        logger.info("完成一次打板");
 
     }
 }

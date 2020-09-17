@@ -1,13 +1,13 @@
 package sample.utils;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import sample.entity.ExcelDataVO;
 import sample.entity.Plate;
 import sample.entity.Well;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
 
@@ -85,11 +85,24 @@ public class ExpExcelByTemplate {
      * @throws Exception
      */
 
-    public void impDataToWorkBook(List<ExcelDataVO> lists) throws Exception{
+    public void impDataToWorkBook(List<ExcelDataVO> lists ,int startIdx,String plateID) throws Exception{
+
 
         Sheet sheet = workbook.getSheetAt(0);
 
-        for (int i = 0; i < lists.size(); i++) {
+        //设置板号
+        Row row_0 = sheet.getRow(0);
+        Cell cell_1 =row_0.getCell(1);
+        if(cell_1.getCellType()== CellType.BLANK){
+            cell_1.setCellValue(plateID);
+        }
+
+        for (int i = startIdx; i < lists.size(); i++) {
+
+            if(i>=92-startIdx){
+                break;
+            }
+
 
             ExcelDataVO excelDataVO = lists.get(i);
             String Name_a = excelDataVO.getName_a();
@@ -106,6 +119,8 @@ public class ExpExcelByTemplate {
             }
         }
     }
+
+
 
     public static void main(String[] args)throws Exception {
     }
