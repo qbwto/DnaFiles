@@ -12,8 +12,8 @@ import java.util.regex.Pattern;
 
 
 /**
- * 查找9数字，若读取文本为连续则查找PCR开头 若文本有换行符分隔直接查找9位数。
- * 验证可以查看开头数字
+ * 文件工具类
+ *
  */
 public class FileUtil {
 
@@ -35,45 +35,7 @@ public class FileUtil {
 
     }
 
-    public static void exlToText(String pathname, Workbook wb) throws IOException {
 
-        File file = new File(pathname);
-        FileWriter fw = new FileWriter(file);
-        BufferedWriter bw = new BufferedWriter(fw);
-
-        Sheet sheet = wb.getSheetAt(0);
-        int MaxRow = sheet.getPhysicalNumberOfRows();
-
-        for (int i = 0; i < MaxRow; i++) {
-            Row row = sheet.getRow(i);
-            int MaxCol = row.getLastCellNum();
-
-            for(int j=0; j<MaxCol; j++){
-                Cell cell = row.getCell(j);
-                if(cell !=null) {
-                    CellType type = cell.getCellType();
-                    String s ="";
-                    if(type==CellType.NUMERIC){
-                         s = String.valueOf((int)cell.getNumericCellValue());
-                    }else if(type==CellType.STRING){
-                         s = cell.getStringCellValue();
-                    }
-                    bw.write(s.trim());
-                    System.out.println("==" + s.trim() + "==");
-                }
-                if (j != MaxCol - 1) {
-                    bw.write("\t");
-                }
-            }
-            bw.newLine();
-            bw.flush();
-        }
-        wb.close();
-        bw.close();
-        fw.close();
-
-
-    }
 
     public static String getPrefix(String fileName, boolean toLower) {
         if (fileName.contains(".")) {
@@ -109,111 +71,8 @@ public class FileUtil {
         return result;
     }
 
-    /**
-     * 读取codis文件的方法
-     * @return
-     */
-    public static List<String> matcherStrFromCODIS (File f){
-
-        List<String> strList = new ArrayList<String>();
-
-        try{
-
-            String a = FileUtil.getStringValue(f);
-            String regExa="\\d{9}";
-            Pattern pattern_a = Pattern.compile(regExa);
-            Matcher matcher_a = pattern_a.matcher(a);
-            while(matcher_a.find()) {
-                strList.add(matcher_a.group());
-            }
-        }catch (Exception e){
-            //TODO
-        }
-
-        return strList;
-    }
-
-    /**
-     * 读取分析表中的实验室编号
-     * @param file
-     * @throws IOException
-     */
-    public static List<String> matcherStrFromExcel(File file) throws IOException {
-        FileInputStream in = new FileInputStream(file);
-        Workbook workbook = new HSSFWorkbook(in);
 
 
-        List<String> strList = new ArrayList<String>(96);
-
-        Sheet sheet = workbook.getSheetAt(0);
-        int MaxRow = sheet.getPhysicalNumberOfRows();
-        //排除掉A1，B1，C1
-        for (int i = 8; i < MaxRow; i++) {
-            Row row = sheet.getRow(i);
-            int MaxCol = row.getLastCellNum();
-            Cell cell1 = row.getCell(1);
-            String s1 ="";
-            if(cell1 !=null) {
-                CellType type = cell1.getCellType();
-                if(type==CellType.NUMERIC){
-                    s1 = String.valueOf((int)cell1.getNumericCellValue());
-                    strList.add(s1.trim());
-                }else if(type==CellType.STRING&&!cell1.getStringCellValue().equals("")){
-                    s1 = cell1.getStringCellValue();
-                    strList.add(s1.trim());
-                }
-
-            }
-
-        }
-        //排除掉H12
-        for (int i = 5; i < MaxRow-1; i++) {
-            Row row = sheet.getRow(i);
-            int MaxCol = row.getLastCellNum();
-            Cell cell2 = row.getCell(4);
-            String s2="";
-            if(cell2 !=null) {
-                CellType type = cell2.getCellType();
-                if(type==CellType.NUMERIC){
-                    s2 = String.valueOf((int)cell2.getNumericCellValue());
-                    strList.add(s2.trim());
-                }else if(type==CellType.STRING&&!cell2.getStringCellValue().equals("")){
-                    s2 = cell2.getStringCellValue();
-                    strList.add(s2.trim());
-                }
-            }
-        }
-
-        workbook.close();
-        in.close();
-
-        return strList;
-    }
-    public static void main(String[] args) {
-
-        File file = new File("C:\\Users\\Administrator\\Desktop\\朱宏岩\\20200309-3.dat");
-        try {
-
-            String a =FileUtil.getStringValue(file);
-            //System.out.print(FileUtil.getStringValue(file).indexOf("223633960"));
-
-            List<String> strs = new ArrayList<String>();
-            String regEx="\\d{9}";
-           //String regEx="PCR";
-            Pattern p = Pattern.compile(regEx);
-            Matcher m = p.matcher(a);
-
-            while(m.find()) {
-                strs.add(m.group());
-
-            }
-            System.out.println(strs.size());
-            System.out.println(strs);
-            System.out.println(a);
-        }catch (Exception e){
-            System.out.println(e.fillInStackTrace());
-        }
 
 
-    }
 }

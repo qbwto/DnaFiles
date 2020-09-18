@@ -53,7 +53,6 @@ public class Main extends Application {
      * 【打板】模块涉及的类：
      * controller.SampleController
      * entity.Plate 、entity.Well
-     * utils.ExpExcelByTemplate
      * ExpFileTemplate/*
      * fxml/sample.fxml
      * @param event

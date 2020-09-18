@@ -15,8 +15,7 @@ public class OpsLogDataVO {
     private int file_b_quantity;//文件B提取数据量
     private File file_a;
     private File file_b;
-    //文件A 提取编号数组
-    //文件B 提取编号数组
+
 
     public OpsLogDataVO() {
         this.hitQuantity = 0;

@@ -17,17 +17,15 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import sample.entity.ExcelDataVO;
 import sample.entity.OpsLogDataVO;
-import sample.utils.ExpExcelByTemplate;
 import sample.utils.FileUtil;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class RecheckController {
@@ -164,8 +162,8 @@ public class RecheckController {
                     opsLogDataVO.setFile_a(files_a[i]);
                     opsLogDataVO.setFile_b(files_b[j]);
                     //读取路径a中文件数据,读取路径b中文件数据
-                    List<String> strs_a = FileUtil.matcherStrFromCODIS(files_a[i]);
-                    List<String> strs_b = FileUtil.matcherStrFromExcel(files_b[j]);
+                    List<String> strs_a = matcherStrFromCODIS(files_a[i]);
+                    List<String> strs_b = matcherStrFromExcel(files_b[j]);
                     opsLogDataVO.setFile_a_quantity(strs_a.size());
                     opsLogDataVO.setFile_b_quantity(strs_b.size());
                     //路径B文件的数据未求差集前的大小
@@ -227,26 +225,26 @@ public class RecheckController {
 
     /**
      * 导出比对数据
-     * 分两种，一种从已有文件开始、另一种从新文件开始
+     * 分两种，一种从已有复检文件开始，另一种从新文件开始。
      * @throws Exception
      */
     @FXML
     public void exportExcelAction() throws Exception {
 
-        //判断列表是否有数据
+        /** 判断列表是否有数据 */
         if(excelDataVOList.size()==0){
-            this.alertInfo("\"暂无数据可以导出\"");
+            this.alertInfo("暂无数据可以导出");
             return;
         }
 
-        //询问用户
+        /** 提示选择导出方式 */
         Alert _alert = new Alert(Alert.AlertType.NONE,"是否衔接【已有文件】继续导出？"
                 ,new ButtonType("创建【新的文件】", ButtonBar.ButtonData.NO)
                 ,new ButtonType("衔接【已有文件】", ButtonBar.ButtonData.YES));
-        //方法用途是：将在对话框消失以前不会执行之后的代码
         Optional<ButtonType> _buttonType = _alert.showAndWait();
-        //衔接已有文件导出
+
         if(_buttonType.get().getButtonData().equals(ButtonBar.ButtonData.YES)){
+
             //选择继续导出的文件
             FileChooser fileChooser = new FileChooser();
             FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Excel files (*.xls)", "*.xls");
@@ -256,41 +254,41 @@ public class RecheckController {
             //获取指定文件名、路径
             String fileName = FileUtil.getPrefix(f.getName(),false);
             String filePath = f.getParent();
+            //判断文件文件名是否正确
+            if(nextFileName(fileName).equals("err")) {
+                alertInfo("请选择正确的文件");
+                return;
+            }
 
-            /* 首先用数据填充已有文件剩余孔位 */
+            /** 首先用数据填充已有文件剩余孔位 */
+
             //获取已有文件中92个孔位里可填写的第一个孔位
-            int idx = this.getIdxOfWorkBook(f);//
-
+            int idx = getIdxOfWorkBook(f);
             //用数据将剩余孔位补齐
-            int impSize = this.impDataToWorkBook(f,excelDataVOList,idx);
+            int impSize = impDataToWorkBook(f,excelDataVOList,idx);
             if(impSize == -1) return;
 
-            /* 截取补齐第一个文件的剩余数据并生成新文件 */
+            /** 截取补齐第一个文件的剩余数据并生成新文件 */
             if(excelDataVOList.size()>(92-idx)){
                 //剩余数据
                 List<ExcelDataVO> otherExcelDataVoList = excelDataVOList.subList(impSize,excelDataVOList.size());
 
                 //计算生成文件数量
-                int forTimes = 0;
-                int listSize = otherExcelDataVoList.size();
-                if(listSize<92) forTimes=1;
-                else if(listSize>92&&listSize%92!=0) forTimes = listSize/92 +1;
-                else if(listSize>92&&listSize%92==0) forTimes = listSize/92;
+                int forTimes = getNumOfFilesByDataSize(excelDataVOList.size());
 
                 //将剩余数据输出文档
                 for(int i =0 ; i<forTimes ;i++){
-                    ExpExcelByTemplate expExcelByFJ = new ExpExcelByTemplate("复检模板.xls");
+                    InputStream in = this.getClass().getResourceAsStream("/ExpFileTemplate/"+"复检模板.xls");
+                    Workbook workbook = new HSSFWorkbook(in);
                     fileName =nextFileName(fileName);
                     if(i!=forTimes-1) {
-                        expExcelByFJ.impDataToWorkBook(otherExcelDataVoList.subList(i * 92, 92), 0,fileName);
+                        impDataToWorkBook(otherExcelDataVoList.subList(i * 92, 92),workbook,fileName);
                     }else{
-                        expExcelByFJ.impDataToWorkBook(otherExcelDataVoList.subList(i * 92, otherExcelDataVoList.size()), 0,fileName);
+                        impDataToWorkBook(otherExcelDataVoList.subList(i * 92, otherExcelDataVoList.size()), workbook,fileName);
                     }
-
-                    Workbook wb_fx = expExcelByFJ.getWorkbook();
                     FileOutputStream fos = new FileOutputStream(filePath  + "\\" + fileName + ".xls");
-                    wb_fx.write(fos);
-                    wb_fx.close();
+                    workbook.write(fos);
+                    workbook.close();
                     fos.close();
                 }
             }
@@ -308,7 +306,6 @@ public class RecheckController {
                     alertInfo("请输入正确的文件名");
                     return;
                 }
-
             }else{
                 alertInfo("请输入的文件名为空，请重新操作");
             }
@@ -321,24 +318,20 @@ public class RecheckController {
             String filePath = f.getPath();
 
             //计算生成文件数量
-            int forTimes = 0;
-            int listSize = excelDataVOList.size();
-            if(listSize<92) forTimes=1;
-            else if(listSize>92&&listSize%92!=0) forTimes = listSize/92 +1;
-            else if(listSize>92&&listSize%92==0) forTimes = listSize/92;
+            int forTimes = getNumOfFilesByDataSize(excelDataVOList.size());
 
             for(int i =0 ; i<forTimes ;i++){
-                ExpExcelByTemplate expExcelByFJ = new ExpExcelByTemplate("复检模板.xls");
+                InputStream in = this.getClass().getResourceAsStream("/ExpFileTemplate/"+"复检模板.xls");
+                Workbook workbook = new HSSFWorkbook(in);
                 if(i != 0 ) fileName =nextFileName(fileName);
                 if(i!=forTimes-1) {
-                    expExcelByFJ.impDataToWorkBook(excelDataVOList.subList(i * 92, 92), 0,fileName);
+                    impDataToWorkBook(excelDataVOList.subList(i * 92, 92),workbook,fileName);
                 }else{
-                    expExcelByFJ.impDataToWorkBook(excelDataVOList.subList(i * 92, excelDataVOList.size()), 0,fileName);
+                    impDataToWorkBook(excelDataVOList.subList(i * 92, excelDataVOList.size()), workbook,fileName);
                 }
-                Workbook wb_fx = expExcelByFJ.getWorkbook();
                 FileOutputStream fos = new FileOutputStream(filePath  + "\\" + fileName + ".xls");
-                wb_fx.write(fos);
-                wb_fx.close();
+                workbook.write(fos);
+                workbook.close();
                 fos.close();
             }
 
@@ -389,21 +382,11 @@ public class RecheckController {
         return newFileName;
     }
 
-    public static void main(String[] args) {
-        nextFileName("ddkkd-c");
-    }
-    /**
-     * 提示基础信息必填项
-     * @param
-     */
-    private void alertInfo (String msg){
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setContentText(msg);
-        alert.showAndWait();
-    }
+
 
     /**
-     * 读取“复检模板”excel 查看从哪个位置开始没有值
+     * 读取已有数据的“复检模板”，查看从哪个位置开始没有值，
+     * 该方法返回值不是实际excel模板中的位置，而是模板中92个可填写数据位置的顺序号。
      * @return
      */
     public int getIdxOfWorkBook(File file) throws Exception{
@@ -412,13 +395,11 @@ public class RecheckController {
         Workbook workbook = new HSSFWorkbook(in);
 
         int idx = 0;
-
         Sheet sheet = workbook.getSheetAt(0);
 
         for (int i = 0; i < 92; i++) {
 
             Cell c ;
-
             if (i < 45) {
                 Row row = sheet.getRow(i + 5);
                 c = row.getCell(1);
@@ -435,18 +416,15 @@ public class RecheckController {
             }else if(type==CellType.BLANK){
                 idx = i; break;
             }
-
         }
-
         in.close();
         workbook.close();
-
         return idx;
     }
 
 
     /**
-     * 将比对的数据放入“复检模板.xls”
+     * 将比对的数据放入已有的模板文件中
      * @param file 文件
      * @param lists 数据
      * @param startIdx 在“复检模板”中可以插入数据的起始位置
@@ -503,6 +481,183 @@ public class RecheckController {
         }
 
         return impSize;
+    }
+
+    /**
+     * 将导出输入输出到新建的模板文件中
+     * @param lists
+     * @param workbook
+     * @param plateID 板号
+     * @throws Exception
+     */
+    public void impDataToWorkBook(List<ExcelDataVO> lists ,Workbook workbook,String plateID) throws Exception{
+
+        Sheet sheet = workbook.getSheetAt(0);
+
+        //设置板号
+        Row row_0 = sheet.getRow(0);
+        Cell cell_1 =row_0.getCell(1);
+        if(cell_1.getCellType()== CellType.BLANK){
+            cell_1.setCellValue(plateID);
+        }
+
+        for (int i = 0; i < lists.size(); i++) {
+
+            ExcelDataVO excelDataVO = lists.get(i);
+            String Name_a = excelDataVO.getName_a();
+            String Name_b = excelDataVO.getName_b();
+
+            if (i < 45) {
+                Row row = sheet.getRow(i + 5);
+                row.getCell(1).setCellValue(Name_b);
+                row.getCell(2).setCellValue(Name_a);
+            } else {
+                Row row = sheet.getRow((i - 48) + 5);
+                row.getCell(5).setCellValue(Name_b);
+                row.getCell(6).setCellValue(Name_a);
+            }
+        }
+    }
+
+    /**
+     * 根据数据量判断导出文件的数量
+     * @param dataSize
+     * @return
+     */
+    private  static int getNumOfFilesByDataSize(int dataSize){
+
+        int NumOfFiles = 0;
+
+        if(dataSize<92){
+            NumOfFiles=1;
+
+        }else if(dataSize>92){
+            if(dataSize%92!=0){
+                NumOfFiles = dataSize/92 +1;
+            }else if(dataSize%92==0){
+                NumOfFiles = dataSize/92;
+            }
+        }
+        return NumOfFiles;
+    }
+
+
+    /**
+     * 提示弹出框
+     * @param
+     */
+    private void alertInfo (String msg){
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setContentText(msg);
+        alert.showAndWait();
+    }
+
+    /**
+     * 读取codis文件的方法
+     * @return
+     */
+    public static List<String> matcherStrFromCODIS (File f){
+
+        List<String> strList = new ArrayList<String>();
+
+        try{
+
+            String a = FileUtil.getStringValue(f);
+            String regExa="\\d{9}";
+            Pattern pattern_a = Pattern.compile(regExa);
+            Matcher matcher_a = pattern_a.matcher(a);
+            while(matcher_a.find()) {
+                strList.add(matcher_a.group());
+            }
+        }catch (Exception e){
+           e.printStackTrace();
+        }
+
+        return strList;
+    }
+
+    /**
+     * 读取分析表中的实验室编号
+     * @param file
+     * @throws IOException
+     */
+    public static List<String> matcherStrFromExcel(File file) throws IOException {
+
+        FileInputStream in = new FileInputStream(file);
+        Workbook workbook = new HSSFWorkbook(in);
+
+        List<String> strList = new ArrayList<String>(96);
+        Sheet sheet = workbook.getSheetAt(0);
+        int MaxRow = sheet.getPhysicalNumberOfRows();
+        //排除掉A1，B1，C1
+        for (int i = 8; i < MaxRow; i++) {
+            Row row = sheet.getRow(i);
+            int MaxCol = row.getLastCellNum();
+            Cell cell1 = row.getCell(1);
+            String s1 ="";
+            if(cell1 !=null) {
+                CellType type = cell1.getCellType();
+                if(type==CellType.NUMERIC){
+                    s1 = String.valueOf((int)cell1.getNumericCellValue());
+                    strList.add(s1.trim());
+                }else if(type==CellType.STRING&&!cell1.getStringCellValue().equals("")){
+                    s1 = cell1.getStringCellValue();
+                    strList.add(s1.trim());
+                }
+
+            }
+
+        }
+        //排除掉H12
+        for (int i = 5; i < MaxRow-1; i++) {
+            Row row = sheet.getRow(i);
+            int MaxCol = row.getLastCellNum();
+            Cell cell2 = row.getCell(4);
+            String s2="";
+            if(cell2 !=null) {
+                CellType type = cell2.getCellType();
+                if(type==CellType.NUMERIC){
+                    s2 = String.valueOf((int)cell2.getNumericCellValue());
+                    strList.add(s2.trim());
+                }else if(type==CellType.STRING&&!cell2.getStringCellValue().equals("")){
+                    s2 = cell2.getStringCellValue();
+                    strList.add(s2.trim());
+                }
+            }
+        }
+
+        workbook.close();
+        in.close();
+
+        return strList;
+    }
+
+    public class ExcelDataVO {
+
+
+        private String name_a;
+        private String name_b;
+
+        public ExcelDataVO(String name_a, String name_b) {
+            this.name_a = name_a;
+            this.name_b = name_b;
+        }
+
+        public String getName_a() {
+            return name_a;
+        }
+
+        public void setName_a(String name_a) {
+            this.name_a = name_a;
+        }
+
+        public String getName_b() {
+            return name_b;
+        }
+
+        public void setName_b(String name_b) {
+            this.name_b = name_b;
+        }
     }
 }
 

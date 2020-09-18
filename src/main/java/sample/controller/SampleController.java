@@ -18,14 +18,13 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.log4j.Logger;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
 import sample.entity.Plate;
 import sample.entity.Well;
-import sample.utils.ExpExcelByTemplate;
-import sample.utils.FileUtil;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.util.Optional;
 
 /**
@@ -407,19 +406,19 @@ public class SampleController {
         if(f==null){ return; }//未选择路径
 
         /* 生成分析表 */
-        ExpExcelByTemplate expExcelByFX = new ExpExcelByTemplate("分析模板.xls");
-        expExcelByFX.impDataToWorkBook(plate);
-        Workbook wb_fx = expExcelByFX.getWorkbook();
+        InputStream in0 = this.getClass().getResourceAsStream("/ExpFileTemplate/"+"分析模板.xls");
+        Workbook wb_fx = new HSSFWorkbook(in0);
+        impDataToWorkBook(wb_fx,"分析模板",plate);
         FileOutputStream fos = new FileOutputStream(f.getAbsolutePath()+"/"+plate.getPlateID()+".xls");
         wb_fx.write(fos);
         wb_fx.close();
         fos.close();
 
         /* 生成上样表 */
-        ExpExcelByTemplate expExcelByQY = new ExpExcelByTemplate("取样模板.xls");
-        expExcelByQY.impDataToWorkBook(plate);
-        Workbook wb_qy = expExcelByQY.getWorkbook();
-        FileUtil.exlToText(f.getAbsolutePath()+"/"+plate.getPlateID()+".txt",wb_qy);
+        InputStream in1 = this.getClass().getResourceAsStream("/ExpFileTemplate/"+"取样模板.xls");
+        Workbook wb_qy = new HSSFWorkbook(in1);
+        impDataToWorkBook(wb_qy,"取样模板",plate);
+        exlToText(f.getAbsolutePath()+"/"+plate.getPlateID()+".txt",wb_qy);
         wb_qy.close();
 
         Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -515,6 +514,102 @@ public class SampleController {
         plate = new Plate();
 
         logger.info("完成一次打板");
+
+    }
+
+    /**
+     * 根据模板导出数据
+     * @param workbook
+     * @param templateName
+     * @param plate
+     * @throws Exception
+     */
+    public void impDataToWorkBook(Workbook workbook,String templateName,Plate plate) throws Exception{
+
+        Sheet sheet = workbook.getSheetAt(0);
+
+        if(templateName.equals("分析模板.xls")){
+
+            sheet.getRow(0).getCell(1).setCellValue(plate.getPlateID());//板号
+            sheet.getRow(0).getCell(3).setCellValue(plate.getReagentType());//试剂盒
+            sheet.getRow(1).getCell(1).setCellValue(plate.getWellSize());//孔径
+            sheet.getRow(2).getCell(1).setCellValue(plate.getSamplePerson());//取样人
+            sheet.getRow(3).getCell(1).setCellValue(plate.getSampleDate());//取样日期
+            sheet.getRow(3).getCell(3).setCellValue(plate.getArea());//地区
+
+            for (int i = 0; i < plate.getWellList().size(); i++) {
+                Well w = plate.getWellList().get(i);
+                String sampleName = w.getSampleName();
+
+                if (i < 48) {
+                    Row row = sheet.getRow(i + 5);
+                    row.getCell(1).setCellValue(sampleName);
+                } else {
+                    Row row = sheet.getRow((i - 48) + 5);
+                    row.getCell(4).setCellValue(sampleName);
+                }
+            }
+        }else if(templateName.equals("取样模板.xls")){
+
+            sheet.getRow(1).getCell(0).setCellValue(plate.getPlateID());//Container Name
+            sheet.getRow(1).getCell(1).setCellValue(plate.getPlateID());//Plate ID
+
+            for (int i = 0; i < plate.getWellList().size(); i++) {
+                Well w = plate.getWellList().get(i);
+                String sampleName = w.getSampleName();
+
+                Row row = sheet.getRow(i + 5);
+                row.getCell(1).setCellValue(sampleName);
+
+            }
+        }
+
+
+    }
+
+    /**
+     * 将excle 转成txt
+     * @param pathname
+     * @param wb
+     * @throws IOException
+     */
+    public static void exlToText(String pathname, Workbook wb) throws IOException {
+
+        File file = new File(pathname);
+        FileWriter fw = new FileWriter(file);
+        BufferedWriter bw = new BufferedWriter(fw);
+
+        Sheet sheet = wb.getSheetAt(0);
+        int MaxRow = sheet.getPhysicalNumberOfRows();
+
+        for (int i = 0; i < MaxRow; i++) {
+            Row row = sheet.getRow(i);
+            int MaxCol = row.getLastCellNum();
+
+            for(int j=0; j<MaxCol; j++){
+                Cell cell = row.getCell(j);
+                if(cell !=null) {
+                    CellType type = cell.getCellType();
+                    String s ="";
+                    if(type==CellType.NUMERIC){
+                        s = String.valueOf((int)cell.getNumericCellValue());
+                    }else if(type==CellType.STRING){
+                        s = cell.getStringCellValue();
+                    }
+                    bw.write(s.trim());
+                    System.out.println("==" + s.trim() + "==");
+                }
+                if (j != MaxCol - 1) {
+                    bw.write("\t");
+                }
+            }
+            bw.newLine();
+            bw.flush();
+        }
+        wb.close();
+        bw.close();
+        fw.close();
+
 
     }
 }
